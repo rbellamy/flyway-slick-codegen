@@ -1,0 +1,1 @@
+case class DbConf(profile: String, driver: String, url: String, user: String, password: String)

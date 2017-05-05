@@ -1,0 +1,43 @@
+# general
+native
+*~
+*.log
+tmp
+dump
+.history
+/*.iml
+/out
+**.swp
+.DS_Store
+scripts/shscripts/cookies.txt
+scripts/node-aergo/node_modules
+scripts/node-aergo/*.js
+scripts/node-aergo/Market_Leader_Reports*
+scripts/node-aergo/single_reports*
+
+# Eclipse
+.settings
+.cache
+.cache-main
+.cache-tests
+.project
+.classpath
+.scala_dependencies
+.worksheet
+*.sc
+
+# IDEA
+/.idea
+/.idea_modules
+
+# SBT
+bin
+project/project
+target
+.target
+
+# Play
+logs
+RUNNING_PID
+
+atlassian-ide-plugin.xml
