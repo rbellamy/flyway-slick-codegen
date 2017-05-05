@@ -69,7 +69,9 @@ lazy val flyway = (project in file("flyway"))
     flywayLocations in Test := Seq("classpath:db/migration"),
     flywayUrl in Test := (dbConf in Test).value.url,
     flywayUser in Test := (dbConf in Test).value.user,
-    flywayPassword in Test := (dbConf in Test).value.password
+    flywayPassword in Test := (dbConf in Test).value.password,
+    (test in Test) := (test in Test).dependsOn((flywayClean in Test).dependsOn(flywayMigrate in Test)).value,
+    (compile in Compile) := (compile in Compile).dependsOn(flywayMigrate in Compile).value
   )
 
 lazy val genTablesTask = Def.task {

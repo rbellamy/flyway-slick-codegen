@@ -39,10 +39,33 @@ There are three environment where this build file will be run:
 2. LOCAL developer, working in `runtime` -> this uses SBT `Compile`
 3. CI Server, working in `runtime` -> this uses SBT `Compile`
 
-Also, the following SBT commands should produce the results shown after the fat arrow:
-1. `sbt test` => `flywayClean in Test` + `flywayMigrate in Test` + `genTables in Test` + `test`
-2. `sbt compile` => `flywayMigrate` + `genTables` + `compile`
-3. `sbt run` => `sbt compile` + `run mainClass`
+The following SBT commands should produce the results shown after the fat arrow:
+1. `sbt test` => `flywayClean in Test` + `flywayMigrate in Test` + `genTables in Test` + `test`. During `test`, Flyway 
+migrations target the `test` database, and then Slick codegen is run against that same `test` database.
+2. `sbt compile` => `flywayMigrate` + `genTables` + `compile`. During `runtime`, Flyway migrations target the `runtime` 
+database, and then Slick codegen is run against that same `runtime` database.
 
 As an added complication, the Flyway migrations project should ship as a resource JAR with the main project, thus allowing
 for runtime migration of databases via code (NOT INCLUDED).
+
+## Attempted solution
+
+Two configuration files, `application.conf` for the `runtime` DB connection, and `test.conf` for the `test` DB.
+
+Each are loaded into a separate instance of the `SettingKey[DbConf]` via the TypeSafe `ConfigFactory.load` run inside
+the `build.sbt` - `dbConf` and `dbConf in Test` respectively.
+
+These DB connection objects are then used by both Flyway and Slick for migration and code generation.
+
+There are so many ways in which this has NOT worked, I'm at a loss as to how to even describe the things I've tried to 
+make it work. 
+
+# The Problem 
+
+While it took some time to setup the problem here, it's essentially a pretty simple issue - I want to target one DB for 
+testing and another for runtime. I need to do this from my build tool.
+
+When the two codegen tasks are wired to `sourceGenerators`, this means they BOTH get run during test.
+
+When the Flyway migrate tasks are wired to various tasks, they both get run, whether during `Compile` or `Test`.
+
