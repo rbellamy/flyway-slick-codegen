@@ -1,14 +1,30 @@
 import java.io.File
-import com.typesafe.config.ConfigFactory
 
+import com.typesafe.config.ConfigFactory
 import Dependencies._
-import sbt._
+import sbt.{Def, _}
 
 val generatedAergoFilePath: String = "/com/terradatum/dao/Tables.scala"
 val flywayDbName: String = "admin"
 
-lazy val dbConf = settingKey[DbConf]("Typesafe config file with slick settings")
-lazy val genTables = taskKey[Seq[File]]("Generate slick code in Compile")
+val isTestMode = taskKey[Boolean]("Whether or not to use the 'test' DB")
+val testCommands = settingKey[Seq[String]]("Name of the commands used during test")
+
+val dbConf = settingKey[DbConf]("Typesafe config file with slick settings")
+val genTables = taskKey[Seq[File]]("Generate slick code")
+val genTablesTest = taskKey[Seq[File]]("Generate slick code in Test")
+
+isTestMode := isTestMode.value
+testCommands := Seq("test", "test:compile", "flyway/test", "flyway/test:compile")
+
+def isTestModeTask = Def.task {
+  testCommands.value.contains(executedCommandKey.value)
+}
+
+def executedCommandKey = Def.task {
+  // A fully-qualified reference to a setting or task looks like {<build-uri>}<project-id>/config:intask::key
+  state.value.history.current.takeWhile(c => !c.isWhitespace).split(Array('/', ':')).lastOption.getOrElse("")
+}
 
 dbConf := {
   val configFactory = ConfigFactory.parseFile((resourceDirectory in Compile).value / "application.conf")
@@ -36,14 +52,21 @@ dbConf in Test := {
   )
 }
 
-def genTablesTask(
-    dbConf: SettingKey[DbConf],
-    path: String,
-    sourceManaged: SettingKey[File],
-    dependencyClasspath: TaskKey[Keys.Classpath],
-    runner: TaskKey[ScalaRun],
-    streams: TaskKey[Keys.TaskStreams]
-) = Def.task {
+val genTablesTask: (
+    SettingKey[DbConf],
+    String,
+    SettingKey[File],
+    TaskKey[Keys.Classpath],
+    TaskKey[ScalaRun],
+    TaskKey[Keys.TaskStreams]
+) => Def.Initialize[Task[Seq[File]]] = (
+  dbConf: SettingKey[DbConf],
+  path: String,
+  sourceManaged: SettingKey[File],
+  dependencyClasspath: TaskKey[Keys.Classpath],
+  runner: TaskKey[ScalaRun],
+  streams: TaskKey[Keys.TaskStreams]
+  ) => Def.task {
   val outputDir = sourceManaged.value.getPath
   val fname = outputDir + path
   if (!file(fname).exists()) {
@@ -66,7 +89,7 @@ def genTablesTask(
   Seq(file(fname))
 }
 
-val genTablesTaskCompile = genTablesTask(
+val genTablesTaskCompile: Def.Initialize[Task[Seq[File]]] = genTablesTask(
   dbConf,
   generatedAergoFilePath,
   sourceManaged in Compile,
@@ -75,7 +98,7 @@ val genTablesTaskCompile = genTablesTask(
   streams
 )
 
-val genTablesTaskTest = genTablesTask(
+val genTablesTaskTest: Def.Initialize[Task[Seq[File]]] = genTablesTask(
   dbConf in Test,
   generatedAergoFilePath,
   sourceManaged in Test,
@@ -84,14 +107,22 @@ val genTablesTaskTest = genTablesTask(
   streams
 )
 
+def codegen = Def.taskDyn {
+  if (isTestMode.value) {
+    genTablesTaskTest
+  } else {
+    genTablesTaskCompile
+  }
+}
+
 lazy val `flyway-slick-codegen-test` = (project in file("."))
-  .settings(Common.settings: _*)
   .settings(
+    Common.settings,
     libraryDependencies ++= serverDependencies,
-    genTables in (Compile, compile) := genTablesTaskCompile.value,
-    genTables in (Test, compile) := genTablesTaskTest.value,
-    sourceGenerators in (Compile, compile) += genTablesTaskCompile.taskValue,
-    sourceGenerators in (Test, compile) += genTablesTaskTest.taskValue
+    isTestMode := isTestModeTask.value,
+    genTables := genTablesTaskCompile.value,
+    genTablesTest := genTablesTaskTest.value,
+    sourceGenerators in Compile += codegen.taskValue
   )
   .aggregate(flyway)
   .dependsOn(flyway)
