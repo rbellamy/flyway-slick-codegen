@@ -4,7 +4,7 @@ import com.typesafe.config.ConfigFactory
 import Dependencies._
 import sbt.{Def, _}
 
-val generatedAergoFilePath: String = "/com/terradatum/dao/Tables.scala"
+val generatedTestFilePath: String = "/com/terradatum/dao/Tables.scala"
 val flywayDbName: String = "admin"
 
 val isTestMode = taskKey[Boolean]("Whether or not to use the 'test' DB")
@@ -91,7 +91,7 @@ val genTablesTask: (
 
 val genTablesTaskCompile: Def.Initialize[Task[Seq[File]]] = genTablesTask(
   dbConf,
-  generatedAergoFilePath,
+  generatedTestFilePath,
   sourceManaged in Compile,
   dependencyClasspath in Compile,
   runner,
@@ -100,7 +100,7 @@ val genTablesTaskCompile: Def.Initialize[Task[Seq[File]]] = genTablesTask(
 
 val genTablesTaskTest: Def.Initialize[Task[Seq[File]]] = genTablesTask(
   dbConf in Test,
-  generatedAergoFilePath,
+  generatedTestFilePath,
   sourceManaged in Test,
   dependencyClasspath in Test,
   runner,
@@ -146,12 +146,12 @@ lazy val flyway = (project in file("flyway"))
   .settings(
     Common.settings ++ flywaySettings ++ inConfig(Test)(flywaySettingsTest),
     name := "flyway-slick-codegen-flyway",
-    description := "Flyway migrations for Aergo PostgreSQL",
+    description := "Flyway migrations for Test PostgreSQL",
     libraryDependencies ++= flywayDependencies,
     /*
      * flyway
      */
-    flywaySchemas := Seq("aergo"),
+    flywaySchemas := Seq("test"),
     //flywayLocations := Seq("classpath:db/migration"),
     //flywayLocations := Seq("filesystem:flyway/src/main/resources/db/migration"),
     (test in Test) := (test in Test).dependsOn((flywayClean in Test).dependsOn(flywayMigrate in Test)).value

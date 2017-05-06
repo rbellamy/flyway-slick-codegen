@@ -9,11 +9,6 @@ dump
 /out
 **.swp
 .DS_Store
-scripts/shscripts/cookies.txt
-scripts/node-aergo/node_modules
-scripts/node-aergo/*.js
-scripts/node-aergo/Market_Leader_Reports*
-scripts/node-aergo/single_reports*
 
 # Eclipse
 .settings

@@ -1,1 +1,1 @@
-DROP ROLE aergo;
+DROP ROLE test;

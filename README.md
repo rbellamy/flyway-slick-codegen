@@ -55,9 +55,9 @@ cd flyway/src/main/resources/db/migration
 ```
 
 This _should_ create two "user" tables and one Flyway table:
-1. AERGO.PROFILE
-2. AERGO.MEMBERSHIP
-3. AERGO.SCHEMA_VERSIONS
+1. TEST.PROFILE
+2. TEST.MEMBERSHIP
+3. TEST.SCHEMA_VERSIONS
 
 ## Desired behavior
 

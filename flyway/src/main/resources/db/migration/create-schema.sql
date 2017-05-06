@@ -1,5 +1,5 @@
--- SCHEMA: aergo
+-- SCHEMA: test
 
--- DROP SCHEMA aergo ;
+-- DROP SCHEMA test ;
 
-CREATE SCHEMA aergo AUTHORIZATION aergo;
+CREATE SCHEMA test AUTHORIZATION test;
