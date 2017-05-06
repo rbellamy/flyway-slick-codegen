@@ -69,3 +69,7 @@ When the two codegen tasks are wired to `sourceGenerators`, this means they BOTH
 
 When the Flyway migrate tasks are wired to various tasks, they both get run, whether during `Compile` or `Test`.
 
+**NOTE: Unfortunately, when the Flyway tasks are wired up, this hits a deadlock problem, so the reproduction can't
+really do a good job of illustrating this.**
+
+Example output when running
