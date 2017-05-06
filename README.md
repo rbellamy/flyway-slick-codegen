@@ -2,10 +2,17 @@
 
 # TL;DR:
 
-I wanna:
+I want to:
 
 * `compile` => run flyway migrations and generate slick code from `localhost:5432`
 * `test:compile` => run flyway migrations and generate slick code from `localhost:5434`
+
+Where (in order):
+
+* `compile` executes `flywayMigrate` + slick codegen + `compile` against `localhost:5432`
+* `test` executes `flywayClean` + `flywayMigrate` + slick codegen + `compile` + `test` against `localhost:5434`
+
+Here's the StackOverflow question: [SBT - how do I run flyway migrations and slick codegen against two databases?][1]
 
 ## Commentary
 
@@ -14,8 +21,8 @@ SBT seems to fight me the whole way. I've spent days on this. I'm very frustrate
 While I am by no means the best developer on the planet, I felt like I had a pretty firm grasp of the in's and out's of 
 SBT. What I thought I knew was garnered through extensive work trying to understand SBT, including building and 
 maintaining a couple of SBT plugins as well as contributing to OSS SBT plugins:
-* [sbt-docker-helper][1]
-* [sbt-native-packager][2]
+* [sbt-docker-helper][2]
+* [sbt-native-packager][3]
 
 The level of attention required to solve apparently simple problems seems tremendously high.
 
@@ -99,5 +106,6 @@ When the Flyway migrate tasks are wired to various tasks, they both get run, whe
 **NOTE: Unfortunately, when the Flyway tasks are wired up, this hits a deadlock problem, so the reproduction can't
 really do a good job of illustrating this.**
 
- [1]: https://github.com/terradatum/sbt-docker-helper
- [2]: https://github.com/sbt/sbt-native-packager/pulls?q=is%3Apr+is%3Aclosed+author%3Arbellamy
+ [1]: http://stackoverflow.com/questions/43825855/sbt-how-do-i-run-flyway-migrations-and-slick-codegen-against-two-databases
+ [2]: https://github.com/terradatum/sbt-docker-helper
+ [3]: https://github.com/sbt/sbt-native-packager/pulls?q=is%3Apr+is%3Aclosed+author%3Arbellamy
