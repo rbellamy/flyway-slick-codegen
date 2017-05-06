@@ -121,7 +121,8 @@ lazy val flyway = (project in file("flyway"))
      * flyway
      */
     flywaySchemas := Seq("aergo"),
-    flywayLocations := Seq("classpath:db/migration")
-    //(test in Test) := (test in Test).dependsOn((flywayClean in Test).dependsOn(flywayMigrate in Test)).value,
+    //flywayLocations := Seq("classpath:db/migration"),
+    //flywayLocations := Seq("filesystem:flyway/src/main/resources/db/migration"),
+    (test in Test) := (test in Test).dependsOn((flywayClean in Test).dependsOn(flywayMigrate in Test)).value
     //(compile in Compile) := (compile in Compile).dependsOn(flywayMigrate in Compile).value
   )
