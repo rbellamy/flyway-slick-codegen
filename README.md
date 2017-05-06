@@ -1,10 +1,32 @@
 # flyway-slick-codegen-test
 
+# TL;DR:
+
+I wanna:
+
+* `compile` => run flyway migrations and generate slick code from `localhost:5432`
+* `test:compile` => run flyway migrations and generate slick code from `localhost:5434`
+
+## Commentary
+
+SBT seems to fight me the whole way. I've spent days on this. I'm very frustrated.
+
+While I am by no means the best developer on the planet, I felt like I had a pretty firm grasp of the in's and out's of 
+SBT. What I thought I knew was garnered through extensive work trying to understand SBT, including building and 
+maintaining a couple of SBT plugins as well as contributing to OSS SBT plugins:
+* [sbt-docker-helper][1]
+* [sbt-native-packager][2]
+
+The level of attention required to solve apparently simple problems seems tremendously high.
+
+Said another way: _Using SBT is really hard. Using SBT should be really easy._
+
+# Overview
 **NOTE: ALL NAMES HAVE BEEN CHANGED TO PROTECT THE INNOCENT**
 
 This project is designed to illustrate the difficulty working with SBT, Flyway and Slick Codegen within SBT itself.
 
-The problem is predicated on the idea that project needs two databases:
+The problem is predicated on the idea that project needs two databases for development:
 1. `test` - this database is essentially ephemeral, with the schema being created and destroyed frequently (in-memory)
 2. `runtime` - this database is persistent, running more-or-less all the time
 
@@ -16,6 +38,11 @@ When doing ongoing development, the developer will build Flyway migrations, in c
 development against the `test` database, building unit tests and creating and destroying the schema frequently.
 
 When building artifacts for deployment, the developer will want to target the `runtime` database.
+
+This is _very_ similar to the concept in Play of "Dev" vs "Prod" runtime behavior of SBT. I've therefore inspected and
+tried to emulate various methods for treating this project in a similar way, without much luck.
+
+# Project & Work
 
 ## Setup
 
@@ -67,9 +94,10 @@ testing and another for runtime. I need to do this from my build tool.
 
 When the two codegen tasks are wired to `sourceGenerators`, this means they BOTH get run during test.
 
-When the Flyway migrate tasks are wired to various tasks, they both get run, whether during `Compile` or `Test`.
+When the Flyway migrate tasks are wired to various tasks, they both get run, whether during `compile` or `test` tasks.
 
 **NOTE: Unfortunately, when the Flyway tasks are wired up, this hits a deadlock problem, so the reproduction can't
 really do a good job of illustrating this.**
 
-Example output when running
+ [1]: https://github.com/terradatum/sbt-docker-helper
+ [2]: https://github.com/sbt/sbt-native-packager/pulls?q=is%3Apr+is%3Aclosed+author%3Arbellamy
