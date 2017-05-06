@@ -1,4 +1,4 @@
-# flyway-slick-codegen-test
+# flyway-slick-codegen
 
 # TL;DR:
 

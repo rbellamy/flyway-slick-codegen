@@ -115,7 +115,7 @@ def codegen = Def.taskDyn {
   }
 }
 
-lazy val `flyway-slick-codegen-test` = (project in file("."))
+lazy val `flyway-slick-codegen` = (project in file("."))
   .settings(
     Common.settings,
     libraryDependencies ++= serverDependencies,
@@ -145,7 +145,7 @@ lazy val flywaySettingsTest = Seq(
 lazy val flyway = (project in file("flyway"))
   .settings(
     Common.settings ++ flywaySettings ++ inConfig(Test)(flywaySettingsTest),
-    name := "flyway-slick-codegen-test-flyway",
+    name := "flyway-slick-codegen-flyway",
     description := "Flyway migrations for Aergo PostgreSQL",
     libraryDependencies ++= flywayDependencies,
     /*
