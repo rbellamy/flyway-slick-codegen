@@ -60,33 +60,34 @@ val genTablesTask: (
     TaskKey[ScalaRun],
     TaskKey[Keys.TaskStreams]
 ) => Def.Initialize[Task[Seq[File]]] = (
-  dbConf: SettingKey[DbConf],
-  path: String,
-  sourceManaged: SettingKey[File],
-  dependencyClasspath: TaskKey[Keys.Classpath],
-  runner: TaskKey[ScalaRun],
-  streams: TaskKey[Keys.TaskStreams]
-  ) => Def.task {
-  val outputDir = sourceManaged.value.getPath
-  val fname = outputDir + path
-  if (!file(fname).exists()) {
-    val generator = "slick.codegen.SourceCodeGenerator"
-    val url = dbConf.value.url
-    val slickProfile = dbConf.value.profile.dropRight(1)
-    val jdbcDriver = dbConf.value.driver
-    val pkg = "com.terradatum.dao"
-    val username = dbConf.value.user
-    val password = dbConf.value.password
-    toError(
-      runner.value.run(
-        generator,
-        dependencyClasspath.value.files,
-        Array(slickProfile, jdbcDriver, url, outputDir, pkg, username, password),
-        streams.value.log
+    dbConf: SettingKey[DbConf],
+    path: String,
+    sourceManaged: SettingKey[File],
+    dependencyClasspath: TaskKey[Keys.Classpath],
+    runner: TaskKey[ScalaRun],
+    streams: TaskKey[Keys.TaskStreams]
+) =>
+  Def.task {
+    val outputDir = sourceManaged.value.getPath
+    val fname = outputDir + path
+    if (!file(fname).exists()) {
+      val generator = "slick.codegen.SourceCodeGenerator"
+      val url = dbConf.value.url
+      val slickProfile = dbConf.value.profile.dropRight(1)
+      val jdbcDriver = dbConf.value.driver
+      val pkg = "com.terradatum.dao"
+      val username = dbConf.value.user
+      val password = dbConf.value.password
+      toError(
+        runner.value.run(
+          generator,
+          dependencyClasspath.value.files,
+          Array(slickProfile, jdbcDriver, url, outputDir, pkg, username, password),
+          streams.value.log
+        )
       )
-    )
-  }
-  Seq(file(fname))
+    }
+    Seq(file(fname))
 }
 
 val genTablesTaskCompile: Def.Initialize[Task[Seq[File]]] = genTablesTask(
