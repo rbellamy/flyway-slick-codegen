@@ -9,6 +9,7 @@ val flywayDbName: String = "admin"
 
 val dbConf = settingKey[DbConf]("Typesafe config file with slick settings")
 val dbConfName = settingKey[String]("The configuration name for the DbConf.")
+
 inThisBuild(Seq(
   dbConfName in Test := "test.conf",
   dbConfName in Compile := "application.conf"
