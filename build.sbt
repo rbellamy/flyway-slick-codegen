@@ -57,22 +57,19 @@ def generateTables(conf: DbConf, dependencyClasspath: Seq[Attributed[File]]) = D
   Seq(file(fname))
 }
 
+def generatorsSetting: Seq[Setting[_]] =
+  sourceGenerators += Def.taskDyn(generateTables((dbConf in flyway).value, dependencyClasspath.value)).taskValue
+
+def allSourceGenerators: Seq[Setting[_]] =
+  inConfig(Compile)(generatorsSetting) ++ inConfig(Test)(generatorsSetting)
+
 lazy val `flyway-slick-codegen` = (project in file("."))
   .aggregate(flyway)
   .dependsOn(flyway)
   .settings(
     Common.settings,
     libraryDependencies ++= serverDependencies,
-    sourceGenerators in Compile += Def.taskDyn {
-      val conf = (dbConf in Compile in flyway).value
-      val classpath = (dependencyClasspath in Compile).value
-      generateTables(conf, classpath)
-    }.taskValue,
-    sourceGenerators in Test += Def.taskDyn {
-      val conf = (dbConf in Test in flyway).value
-      val classpath = (dependencyClasspath in Test).value
-      generateTables(conf, classpath)
-    }.taskValue
+    allSourceGenerators
   )
 
 def flywaySettings = Seq(
