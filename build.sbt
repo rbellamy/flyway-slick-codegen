@@ -7,24 +7,10 @@ import sbt.{Def, _}
 val generatedTestFilePath: String = "/com/terradatum/dao/Tables.scala"
 val flywayDbName: String = "admin"
 
-val isTestMode = taskKey[Boolean]("Whether or not to use the 'test' DB")
-val testCommands = settingKey[Seq[String]]("Name of the commands used during test")
-
+val isTestMode = settingKey[Boolean]("Test mode")
 val dbConf = settingKey[DbConf]("Typesafe config file with slick settings")
 val genTables = taskKey[Seq[File]]("Generate slick code")
 val genTablesTest = taskKey[Seq[File]]("Generate slick code in Test")
-
-isTestMode := isTestMode.value
-testCommands := Seq("test", "test:compile", "flyway/test", "flyway/test:compile")
-
-def isTestModeTask = Def.task {
-  testCommands.value.contains(executedCommandKey.value)
-}
-
-def executedCommandKey = Def.task {
-  // A fully-qualified reference to a setting or task looks like {<build-uri>}<project-id>/config:intask::key
-  state.value.history.current.takeWhile(c => !c.isWhitespace).split(Array('/', ':')).lastOption.getOrElse("")
-}
 
 dbConf := {
   val configFactory = ConfigFactory.parseFile((resourceDirectory in Compile).value / "application.conf")
@@ -52,23 +38,10 @@ dbConf in Test := {
   )
 }
 
-val genTablesTask: (
-    SettingKey[DbConf],
-    String,
-    SettingKey[File],
-    TaskKey[Keys.Classpath],
-    TaskKey[ScalaRun],
-    TaskKey[Keys.TaskStreams]
-) => Def.Initialize[Task[Seq[File]]] = (
-    dbConf: SettingKey[DbConf],
-    path: String,
-    sourceManaged: SettingKey[File],
-    dependencyClasspath: TaskKey[Keys.Classpath],
-    runner: TaskKey[ScalaRun],
-    streams: TaskKey[Keys.TaskStreams]
-) =>
+val genTablesTask: (SettingKey[DbConf]) => Def.Initialize[Task[Seq[File]]] = (dbConf: SettingKey[DbConf]) =>
   Def.task {
-    val outputDir = sourceManaged.value.getPath
+    val path = generatedTestFilePath
+    val outputDir = (sourceManaged in Compile).value.getPath
     val fname = outputDir + path
     if (!file(fname).exists()) {
       val generator = "slick.codegen.SourceCodeGenerator"
@@ -81,7 +54,7 @@ val genTablesTask: (
       toError(
         runner.value.run(
           generator,
-          dependencyClasspath.value.files,
+          (dependencyClasspath in Compile).value.files,
           Array(slickProfile, jdbcDriver, url, outputDir, pkg, username, password),
           streams.value.log
         )
@@ -90,23 +63,9 @@ val genTablesTask: (
     Seq(file(fname))
 }
 
-val genTablesTaskCompile: Def.Initialize[Task[Seq[File]]] = genTablesTask(
-  dbConf,
-  generatedTestFilePath,
-  sourceManaged in Compile,
-  dependencyClasspath in Compile,
-  runner,
-  streams
-)
+val genTablesTaskCompile: Def.Initialize[Task[Seq[File]]] = genTablesTask(dbConf)
 
-val genTablesTaskTest: Def.Initialize[Task[Seq[File]]] = genTablesTask(
-  dbConf in Test,
-  generatedTestFilePath,
-  sourceManaged in Test,
-  dependencyClasspath in Test,
-  runner,
-  streams
-)
+val genTablesTaskTest: Def.Initialize[Task[Seq[File]]] = genTablesTask(dbConf in Test)
 
 def codegen = Def.taskDyn {
   if (isTestMode.value) {
@@ -120,12 +79,10 @@ lazy val `flyway-slick-codegen` = (project in file("."))
   .settings(
     Common.settings,
     libraryDependencies ++= serverDependencies,
-    isTestMode := isTestModeTask.value,
-    genTables := genTablesTaskCompile.value,
-    genTablesTest := genTablesTaskTest.value,
+    isTestMode := false,
+    genTables := codegen.value,
     sourceGenerators in Compile += codegen.taskValue
   )
-  .aggregate(flyway)
   .dependsOn(flyway)
 
 dbConf in flyway := dbConf.value
@@ -153,8 +110,8 @@ lazy val flyway = (project in file("flyway"))
      * flyway
      */
     flywaySchemas := Seq("test"),
-    //flywayLocations := Seq("classpath:db/migration"),
+    flywayLocations := Seq("classpath:db/migration")
     //flywayLocations := Seq("filesystem:flyway/src/main/resources/db/migration"),
-    (test in Test) := (test in Test).dependsOn((flywayClean in Test).dependsOn(flywayMigrate in Test)).value
+    //(test in Test) := (test in Test).dependsOn((flywayClean in Test).dependsOn(flywayMigrate in Test)).value
     //(compile in Compile) := (compile in Compile).dependsOn(flywayMigrate in Compile).value
   )
