@@ -10,15 +10,12 @@ val flywayDbName: String = "admin"
 val dbConf = settingKey[DbConf]("Typesafe config file with slick settings")
 val dbConfName = settingKey[String]("The configuration name for the DbConf.")
 
-inThisBuild(Seq(
-  dbConfName in Test := "test.conf",
-  dbConfName in Compile := "application.conf"
-))
-
-def executedCommandKey = Def.task {
-  // A fully-qualified reference to a setting or task looks like {<build-uri>}<project-id>/config:intask::key
-  state.value.history.current.takeWhile(c => !c.isWhitespace).split(Array('/', ':')).lastOption.getOrElse("")
-}
+inThisBuild(
+  Seq(
+    dbConfName in Test := "test.conf",
+    dbConfName in Compile := "application.conf"
+  )
+)
 
 def createDbConf(dbConfFile: File): DbConf = {
   val configFactory = ConfigFactory.parseFile(dbConfFile)
@@ -32,7 +29,6 @@ def createDbConf(dbConfFile: File): DbConf = {
     config.getString("db.password")
   )
 }
-
 
 def generateTables(conf: DbConf, dependencyClasspath: Seq[Attributed[File]]) = Def.task {
   val outputDir = sourceManaged.value.getPath
