@@ -31,7 +31,7 @@ def createDbConf(dbConfFile: File): DbConf = {
 }
 
 def generateTables(conf: DbConf, dependencyClasspath: Seq[Attributed[File]]) = Def.task {
-  val outputDir = sourceManaged.value.getPath
+  val outputDir = (sourceManaged in Compile).value.getPath
   val fname = outputDir + generatedFilePath
   if (!file(fname).exists()) {
     val generator = "slick.codegen.SourceCodeGenerator"
@@ -54,11 +54,14 @@ def generateTables(conf: DbConf, dependencyClasspath: Seq[Attributed[File]]) = D
   Seq(file(fname))
 }
 
-def generatorsSetting: Seq[Setting[_]] =
-  sourceGenerators += Def.taskDyn(generateTables((dbConf in flyway).value, dependencyClasspath.value)).taskValue
-
-def allSourceGenerators: Seq[Setting[_]] =
-  inConfig(Compile)(generatorsSetting) ++ inConfig(Test)(generatorsSetting)
+def allSourceGenerators: Seq[Setting[_]] = Seq(
+  sourceGenerators in Compile += Def.taskDyn(
+    generateTables((dbConf in Compile in flyway).value, (dependencyClasspath in Compile).value)
+  ).taskValue,
+  sourceGenerators in Test    += Def.taskDyn(
+    generateTables((dbConf in    Test in flyway).value, (dependencyClasspath in    Test).value)
+  ).taskValue
+)
 
 lazy val `flyway-slick-codegen` = (project in file("."))
   .aggregate(flyway)
