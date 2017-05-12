@@ -2,15 +2,29 @@
 
 # TL;DR:
 
-I want to:
+I want to run flyway migrations against a test database when running tests. Otherwise, use a runtime database.
 
-* `compile` => run flyway migrations and generate slick code from `localhost:5432`
-* `test:compile` => run flyway migrations and generate slick code from `localhost:5434`
+After numerous discussions and as a result of help I've received from the community, it has been suggested that what I 
+want is unconventional.
+
+I disagree. I think SBT has forced my discussions through a particular set of cognitive filters and bias to the point 
+where what I want only SEEMS unconventional.
+
+What I want to do is use a test database for migration and code generation when running tests, and a runtime database 
+otherwise. That is patently NOT unconventional. I've done it in Maven and Gradle often - otherwise, how, exactly, am I 
+supposed to actually TEST my migrations and codegen during development?
+
+Given that we're talking SBT here:
+
+`compile` => run flyway migrations and generate slick code from `localhost:5432`
+`test` => run flyway migrations and generate slick code from `localhost:5434`
 
 Where (in order):
 
-* `compile` executes `flywayMigrate` + slick codegen + `compile` against `localhost:5432`
-* `test` executes `flywayClean` + `flywayMigrate` + slick codegen + `compile` + `test` against `localhost:5434`
+`compile` executes `flywayMigrate` + slick codegen + `compile` against `localhost:5432`
+`test` executes `flywayClean` + `flywayMigrate` + slick codegen + `compile` + `test` against `localhost:5434`
+
+Both `compile:compile` and `test:compile` generated sources should be placed in `src_managed/main`.
 
 Here's the StackOverflow question: [SBT - how do I run flyway migrations and slick codegen against two databases?][1]
 
@@ -81,13 +95,13 @@ There are three environment where this build file will be run:
 3. CI Server, working in `runtime` -> this uses SBT `Compile`
 
 The following SBT commands should produce the results shown after the fat arrow:
-1. `sbt test` => `flywayClean in Test` + `flywayMigrate in Test` + `genTables in Test` + `test`. During `test`, Flyway 
-migrations target the `test` database, and then Slick codegen is run against that same `test` database.
-2. `sbt compile` => `flywayMigrate` + `genTables` + `compile`. During `runtime`, Flyway migrations target the `runtime` 
-database, and then Slick codegen is run against that same `runtime` database.
+1. `sbt test` => `flywayClean in Test` + `flywayMigrate in Test` + `generateTables in Test` + `test`. During `test`, 
+Flyway migrations target the `test` database, and then Slick codegen is run against that same `test` database.
+2. `sbt compile` => `flywayMigrate` + `generateTables` + `compile`. During `runtime`, Flyway migrations target the 
+`runtime` database, and then Slick codegen is run against that same `runtime` database.
 
-As an added complication, the Flyway migrations project should ship as a resource JAR with the main project, thus allowing
-for runtime migration of databases via code (NOT INCLUDED).
+As an added complication, the Flyway migrations project should ship as a resource JAR with the main project, thus 
+allowing for runtime migration of databases via code (NOT INCLUDED).
 
 ## Attempted solution
 
