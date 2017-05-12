@@ -14,6 +14,12 @@ Where (in order):
 
 Here's the StackOverflow question: [SBT - how do I run flyway migrations and slick codegen against two databases?][1]
 
+Additional reading, minutiea and dramatis personae:
+ * [How to conditionally invoke a task in SBT][4]
+ * [Change a variable in the current sbt task scope][5]
+ * [Enhancement: how to improve the use of scopes][6]
+ * [Keep Global as scope, but rename Global as scope component to Zero][7]
+
 ## Commentary
 
 SBT seems to fight me the whole way. I've spent days on this. I'm very frustrated.
@@ -29,6 +35,7 @@ The level of attention required to solve apparently simple problems seems tremen
 Said another way: _Using SBT is really hard. Using SBT should be really easy._
 
 # Overview
+
 **NOTE: ALL NAMES HAVE BEEN CHANGED TO PROTECT THE INNOCENT**
 
 This project is designed to illustrate the difficulty working with SBT, Flyway and Slick Codegen within SBT itself.
@@ -109,3 +116,7 @@ really do a good job of illustrating this.**
  [1]: http://stackoverflow.com/questions/43825855/sbt-how-do-i-run-flyway-migrations-and-slick-codegen-against-two-databases
  [2]: https://github.com/terradatum/sbt-docker-helper
  [3]: https://github.com/sbt/sbt-native-packager/pulls?q=is%3Apr+is%3Aclosed+author%3Arbellamy
+ [4]: http://stackoverflow.com/questions/29384149/how-to-conditionally-invoke-a-task-in-sbt
+ [5]: https://stackoverflow.com/questions/43850398/change-a-variable-in-the-current-sbt-task-scope
+ [6]: https://github.com/sbt/sbt/issues/3177
+ [7]: https://github.com/sbt/sbt/issues/3178
