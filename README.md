@@ -48,13 +48,13 @@ supposed to actually TEST my migrations and codegen during development?
 
 Given that we're talking SBT here:
 
-`compile` => run flyway migrations and generate slick code from `localhost:5432`
-`test` => run flyway migrations and generate slick code from `localhost:5434`
+* `compile` => run flyway migrations and generate slick code from `localhost:5432`
+* `test` => run flyway migrations and generate slick code from `localhost:5434`
 
 Where (in order):
 
-`compile` executes `flywayMigrate` + slick codegen + `compile` against `localhost:5432`
-`test` executes `flywayClean` + `flywayMigrate` + slick codegen + `compile` + `test` against `localhost:5434`
+* `compile` executes `flywayMigrate` + slick codegen + `compile` against `localhost:5432`
+* `test` executes `flywayClean` + `flywayMigrate` + slick codegen + `compile` + `test` against `localhost:5434`
 
 Both `compile:compile` and `test:compile` generated sources should be placed in `src_managed/main`.
 
