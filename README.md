@@ -4,6 +4,38 @@
 
 I want to run flyway migrations against a test database when running tests. Otherwise, use a runtime database.
 
+I'm pretty much done with this exercise.
+
+**Final solution: stop trying to get SBT to switch configurations.**
+
+Instead, rely on the HOCON ENV resolution process to set the JDBC Url used during testing.
+
+### Compile and/or run
+```bash
+sbt flyway/flywayMigrate compile
+sbt flyway/flywayMigrate run
+```
+
+### Test
+```bash
+export SLICK_ADMIN_URL="jdbc:postgresql://localhost:5434/test"
+sbt flyway/flywayClean flyway/flywayMigrate test
+```
+
+## Commentary
+
+SBT seems to fight me the whole way. I've spent days on this. I'm very frustrated.
+
+While I am by no means the best developer on the planet, I felt like I had a pretty firm grasp of the in's and out's of 
+SBT. What I thought I knew was garnered through extensive work trying to understand SBT, including building and 
+maintaining a couple of SBT plugins as well as contributing to OSS SBT plugins:
+* [sbt-docker-helper][2]
+* [sbt-native-packager][3]
+
+The level of attention required to solve apparently simple problems seems tremendously high.
+
+**Said another way: _Using SBT is really hard. Using SBT should be really easy._**
+
 After numerous discussions and as a result of help I've received from the community, it has been suggested that what I 
 want is unconventional.
 
@@ -37,20 +69,6 @@ Additional reading, minutiea and dramatis personae:
  * [Using Flyway with Play 2.4.x and Slick 3.x][8]
  * [Activator play-slick-codegen-flyway-seed][9]
  * [Flyway Play Module - doesn't work with Slick][10]
-
-## Commentary
-
-SBT seems to fight me the whole way. I've spent days on this. I'm very frustrated.
-
-While I am by no means the best developer on the planet, I felt like I had a pretty firm grasp of the in's and out's of 
-SBT. What I thought I knew was garnered through extensive work trying to understand SBT, including building and 
-maintaining a couple of SBT plugins as well as contributing to OSS SBT plugins:
-* [sbt-docker-helper][2]
-* [sbt-native-packager][3]
-
-The level of attention required to solve apparently simple problems seems tremendously high.
-
-Said another way: _Using SBT is really hard. Using SBT should be really easy._
 
 # Overview
 

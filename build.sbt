@@ -8,16 +8,10 @@ val generatedFilePath: String = "/com/terradatum/dao/Tables.scala"
 val flywayDbName: String = "admin"
 
 val dbConf = settingKey[DbConf]("Typesafe config file with slick settings")
-val dbConfName = settingKey[String]("The configuration name for the DbConf.")
-
-inThisBuild(
-  Seq(
-    dbConfName in Test := "test.conf",
-    dbConfName in Compile := "application.conf"
-  )
-)
+val generateTables = taskKey[Seq[File]]("Generate slick code")
 
 def createDbConf(dbConfFile: File): DbConf = {
+  println (s"dbConfFile: $dbConfFile")
   val configFactory = ConfigFactory.parseFile(dbConfFile)
   val configPath = s"$flywayDbName"
   val config = configFactory.getConfig(configPath).resolve
@@ -30,9 +24,10 @@ def createDbConf(dbConfFile: File): DbConf = {
   )
 }
 
-def generateTables(conf: DbConf, dependencyClasspath: Seq[Attributed[File]]) = Def.task {
+def generateTablesTask(conf: DbConf) = Def.task {
   val outputDir = (sourceManaged in Compile).value.getPath
   val fname = outputDir + generatedFilePath
+  println (s"fname: $fname")
   if (!file(fname).exists()) {
     val generator = "slick.codegen.SourceCodeGenerator"
     val url = conf.url
@@ -44,7 +39,7 @@ def generateTables(conf: DbConf, dependencyClasspath: Seq[Attributed[File]]) = D
     toError(
       runner.value.run(
         generator,
-        dependencyClasspath.files,
+        (dependencyClasspath in Compile).value.files,
         Array(slickProfile, jdbcDriver, url, outputDir, pkg, username, password),
         streams.value.log
       )
@@ -54,46 +49,34 @@ def generateTables(conf: DbConf, dependencyClasspath: Seq[Attributed[File]]) = D
   Seq(file(fname))
 }
 
-def allSourceGenerators: Seq[Setting[_]] = Seq(
-  sourceGenerators in Compile += Def.taskDyn(
-    generateTables((dbConf in Compile in flyway).value, (dependencyClasspath in Compile).value)
-  ).taskValue,
-  sourceGenerators in Test    += Def.taskDyn(
-    generateTables((dbConf in    Test in flyway).value, (dependencyClasspath in    Test).value)
-  ).taskValue
+def dbConfSettings = Seq(
+  dbConf in Global := createDbConf((resourceDirectory in Compile).value / "application.conf")
 )
 
 lazy val `flyway-slick-codegen` = (project in file("."))
   .aggregate(flyway)
   .dependsOn(flyway)
   .settings(
-    Common.settings,
+    Common.settings ++ dbConfSettings,
     libraryDependencies ++= serverDependencies,
-    allSourceGenerators
+    sourceGenerators in Compile += Def.taskDyn(generateTablesTask((dbConf in Global).value)).taskValue
   )
 
 def flywaySettings = Seq(
-  dbConf := createDbConf((resourceDirectory in Compile).value / dbConfName.value),
-  flywayUrl := dbConf.value.url,
-  flywayUser := dbConf.value.user,
-  flywayPassword := dbConf.value.password
+  flywayUrl := (dbConf in Global).value.url,
+  flywayUser := (dbConf in Global).value.user,
+  flywayPassword := (dbConf in Global).value.password
 )
-
-def scopedFlywaySettings: Seq[Setting[_]] =
-  inConfig(Compile)(flywaySettings) ++ inConfig(Test)(flywaySettings)
 
 lazy val flyway = (project in file("flyway"))
   .settings(
-    Common.settings ++ scopedFlywaySettings,
+    Common.settings ++ flywaySettings,
     name := "flyway-slick-codegen-flyway",
     description := "Flyway migrations for Test PostgreSQL",
     libraryDependencies ++= flywayDependencies,
     /*
      * flyway
      */
-    flywaySchemas := Seq("test"),
-    //flywayLocations := Seq("classpath:db/migration"),
-    //flywayLocations := Seq("filesystem:flyway/src/main/resources/db/migration"),
-    (test in Test) := (test in Test).dependsOn((flywayClean in Test).dependsOn(flywayMigrate in Test)).value
-    //(compile in Compile) := (compile in Compile).dependsOn(flywayMigrate in Compile).value
+    flywayLocations := Seq("classpath:db/migration"),
+    flywaySchemas := Seq("test")
   )
