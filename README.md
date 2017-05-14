@@ -29,10 +29,14 @@ Both `compile:compile` and `test:compile` generated sources should be placed in 
 Here's the StackOverflow question: [SBT - how do I run flyway migrations and slick codegen against two databases?][1]
 
 Additional reading, minutiea and dramatis personae:
+ * [Play Scala Isolated Slick Example][11]
  * [How to conditionally invoke a task in SBT][4]
  * [Change a variable in the current sbt task scope][5]
  * [Enhancement: how to improve the use of scopes][6]
  * [Keep Global as scope, but rename Global as scope component to Zero][7]
+ * [Using Flyway with Play 2.4.x and Slick 3.x][8]
+ * [Activator play-slick-codegen-flyway-seed][9]
+ * [Flyway Play Module - doesn't work with Slick][10]
 
 ## Commentary
 
@@ -134,3 +138,7 @@ really do a good job of illustrating this.**
  [5]: https://stackoverflow.com/questions/43850398/change-a-variable-in-the-current-sbt-task-scope
  [6]: https://github.com/sbt/sbt/issues/3177
  [7]: https://github.com/sbt/sbt/issues/3178
+ [8]: http://blog.ssanj.net/posts/2015-12-18-using-flyway-with-play-2_4-and-slick.html
+ [9]: https://github.com/101dev/play-slick-codegen-flyway-seed
+ [10]: https://github.com/flyway/flyway-play/issues/17
+ [11]: https://github.com/playframework/play-scala-isolated-slick-example
